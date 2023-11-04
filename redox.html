@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Valoración Redox</title>
+</head>
+<style>
+    table {
+        border: 1px solid;
+        background-color: #5991EC;
+    }
+
+    th, td {
+        padding-left: 8px;
+        padding-right: 8px;
+        padding-bottom: 4px;
+    }
+
+    input {
+        width: 30%;
+    }
+
+    main {
+        text-align:center
+    }
+</style>
+<body>
+    <main>
+        <section style="display: flex; flex-direction: column;">
+            <table>
+                <tr>
+                    <th>Analito (Fe)</th>
+                    <th></th>
+                    <th>Titulante (Ce)</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td ><span>Volumen inicial (mL)</span></td>
+                    <td ><input type="number" id="volumen-inicial" value="75"></td>
+                    <td><span>Volumen añadido (mL)</span></td>
+                    <td><input type="number" id="volumen-anadido" value="100"></td>
+                </tr>
+                <tr>
+                    <td><span>Concentración (M)</span></td>
+                    <td><input type="number" id="concentracion-analito" value="0.045"></td>
+                    <td><span>Concentración (M)</span></td>
+                    <td><input type="number" id="concentracion-titulante" value="0.075"></td>
+                </tr>
+                <tr>
+                    <td>Potencial Estándar (E°)</td>
+                    <td><input type="number" id="potencial-analito" value="0.77"></td>
+                    <td>Potencial Estándar (E°)</td>
+                    <td><input type="number" id="potencial-titulante" value="1.6"></td>
+                </tr>
+                <tr>
+                    <td><span>Intervalos de adición (mL)</span></td>
+                    <td><input type="number" id="intervalos-adicion" value="1"></td>
+                </tr>
+                <tr>
+                    <td><button id="graficar-valoracion">Graficar</button></td>
+                </tr>
+            </table>
+        </section>
+
+        <svg id="lienzo"></svg>
+    </main>
+    
+    <script src="./js/d3.v7.min.js" type="text/javascript" defer></script>
+    <script src="./js/redox.js" type="text/javascript"></script>
+
+    <script type="module">
+        plotRedoxTitration()
+        document.getElementById("graficar-valoracion").onclick = plotRedoxTitration;
+    </script>
+</body>
+</html>
