@@ -5,8 +5,8 @@ function plotRedoxTitration(){
     d3.selectAll("svg").selectAll("*").remove();
 
     // Assignment of variables
-    let initialVolume = parseInt(document.getElementById("volumen-inicial").value);
-    let totalAgregatedVolume = parseInt(document.getElementById("volumen-anadido").value);
+    let initialVolume = parseFloat(document.getElementById("volumen-inicial").value);
+    let totalAgregatedVolume = parseFloat(document.getElementById("volumen-anadido").value);
     let agregatedStepVolume = parseFloat(document.getElementById("intervalos-adicion").value);
     let analyteStandardPotential = parseFloat(document.getElementById("potencial-analito").value);
     let titrantStandardPotential = parseFloat(document.getElementById("potencial-titulante").value);
@@ -61,6 +61,20 @@ function plotRedoxTitration(){
 }
 
 /**
+ * Return the number of decimals of a floating point number
+ * @param {Number} a Float type number to check the number of decimals 
+ * @returns p Number of decimals
+ */
+function precision(number) {
+    if (!isFinite(number)) return 0;
+    var order = 1, numberOfDecimals = 0;
+    while (Math.round(number * order) / order !== number) { 
+        order *= 10; numberOfDecimals++;
+    }
+    return numberOfDecimals;
+}
+
+/**
  * Return an array with the volume and pH values for the titration
  * @param {Number} initialVolume Initial volume of aliquot
  * @param {Number} totalAgregatedVolume Total titulant volume
@@ -72,11 +86,12 @@ function plotRedoxTitration(){
  * @returns {Array} Volume and E° values [Vol, pH] x number of points
  */
 function getDataRedoxSystem(initialVolume, totalAgregatedVolume, agregatedStepVolume, analyteStandardPotential, titrantStandardPotential, analyteMolarity, titrantMolarity) {
-    let nDecimals = 3 // number of decimals for the pH results
+    let eDecimals = 3 // number of decimals for the E results
+    let volDecimals = precision(agregatedStepVolume); // number of decimals for the volumen results
 
     let equivalenceVolume = (initialVolume*analyteMolarity)/titrantMolarity
 
-    let stepVolume = 0 + agregatedStepVolume // volume on step i
+    let stepVolume = agregatedStepVolume // volume on step i
     let stepE = 0 // E on step i
 
     let analyteOxConcentration = 0 // analyte oxidized concentration on step i
@@ -88,30 +103,30 @@ function getDataRedoxSystem(initialVolume, totalAgregatedVolume, agregatedStepVo
     let dataSet = [] // Final array dataset
 
     let maxPoints = (totalAgregatedVolume*1.5)/agregatedStepVolume // Max number of points
-
+    
     for (let i = 0; i < parseInt(maxPoints); i++) {
-        if (stepVolume > 0 && stepVolume < equivalenceVolume) {
+        if ( stepVolume > 0 && (stepVolume-equivalenceVolume) < -1e-9 ) {
             // #################
             // # Initial point #
             // #################
             analyteOxConcentration = (analyteMolarity*initialVolume - titrantMolarity*stepVolume)/(initialVolume + stepVolume)
             analyteRedConcentration = (titrantMolarity*stepVolume)/(initialVolume + stepVolume)
             stepE = analyteStandardPotential - 0.0592*Math.log10(analyteOxConcentration/analyteRedConcentration)
-            dataSet.push([stepVolume, stepE.toFixed(nDecimals)])
-        } else if (stepVolume === equivalenceVolume) {
+            dataSet.push([parseFloat(stepVolume.toFixed(volDecimals)), parseFloat(stepE.toFixed(eDecimals))])
+        } else if ( Math.abs(stepVolume-equivalenceVolume) < 1e-9 ) {
             // #####################
             // # Equivalence Point #
             // #####################
             stepE = (analyteStandardPotential + titrantStandardPotential)/2
-            dataSet.push([stepVolume, stepE.toFixed(nDecimals)])
-        } else if (stepVolume > equivalenceVolume && stepVolume <= totalAgregatedVolume) {
+            dataSet.push([parseFloat(stepVolume.toFixed(volDecimals)), parseFloat(stepE.toFixed(eDecimals))])
+        } else if ( (stepVolume-equivalenceVolume) > 1e-9 && stepVolume <= totalAgregatedVolume ) {
             // ###########################
             // # After Equivalence Point #
             // ###########################
             titrantRedConcentration = (titrantMolarity*stepVolume - analyteMolarity*initialVolume)/(initialVolume + stepVolume)
             titrantOxConcentration = (analyteMolarity*initialVolume)/(initialVolume + stepVolume)
             stepE = titrantStandardPotential - 0.0592*Math.log10(titrantOxConcentration/titrantRedConcentration)
-            dataSet.push([stepVolume, stepE.toFixed(nDecimals)])
+            dataSet.push([parseFloat(stepVolume.toFixed(volDecimals)), parseFloat(stepE.toFixed(eDecimals))])
         } else if (stepVolume > totalAgregatedVolume) {
             break
         }
